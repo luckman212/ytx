@@ -52,3 +52,7 @@ ytx.py [-cmx] <url-or-filename> [url2...]
 - The `-c` option will use the clipboard contents instead of args
 - The `-m` option will output Markdown format links
 - The `-x` option will output Markdown links with a little more detail (duration and date posted)
+
+### Alfred Forum
+
+Forum post: https://www.alfredforum.com/topic/22763-youtube-url-extractor-ytx/
