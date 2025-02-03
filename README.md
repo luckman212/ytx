@@ -4,6 +4,10 @@
 
 Finds any YouTube URLs in the current clipboard text, and queries Google's YouTube V3 API to fetch metadata about each one. Copy the results as Markdown with short youtu.be format links, which include the duration and upload date.
 
+### Requirements
+
+- Python 3.10 or higher (you probably already have this, but if not a quick `brew install python3` should get you sorted)
+
 ### How to use
 
 Copy some text containing YouTube URLs to the clipboard, then activate this workflow's trigger keyword.
