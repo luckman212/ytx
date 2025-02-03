@@ -2,17 +2,27 @@
 
 ## YouTube URL Extractor
 
-Finds any YouTube URLs in the current clipboard text, and queries Google's YouTube V3 API to fetch metadata about each one.
+Finds any YouTube URLs in the current clipboard text, and queries Google's YouTube V3 API to fetch metadata about each one. Copy the results as Markdown with short youtu.be format links.
 
 ### How to use
 
 Copy some text containing YouTube URLs to the clipboard, then activate this workflow's trigger keyword.
 
-Results are displayed in a list, reverse-sorted by video post date. The complete results can be copied as markdown links ("Copy all items in Markdown link format" option), or opened individually. Hold the <kbd>OPTION</kbd> key to toggle the subtitle between the post date and the full title if it's long/truncated. If you action the "Copy all items..." option while holding <kbd>OPTION</kbd>, the results will be shown in a TextView first to allow the list to be edited before copying.
+Results are displayed in a list, reverse-sorted by video post date. The complete results can be copied as Markdown links ("Copy all items in Markdown link format" option), or opened individually. Hold the <kbd>OPTION</kbd> key to toggle the subtitle between the post date and the full title if it's long/truncated. If you action the "Copy all items..." option while holding <kbd>OPTION</kbd>, the results will be shown in a TextView first to allow the list to be edited before copying.
 
 QuickLook is enabled for the items as a simple “live preview” by pressing the <kbd>SHIFT</kbd> key with a result selected.
 
 <img src="example.png" />
+
+#### Example of the normalized copied output
+
+```
+- [REPLACE Spotlight with Alfred 5: The Ultimate Productivity Hack for Mac Users (23:02)](https://youtu.be/fFI_KgKLvuU) - 2025-01-10
+- [ChatGPT / DALL-E workflow for Alfred 5 (1:57)](https://youtu.be/eNPMqyV8psY) - 2024-03-18
+- [BEST Productivity Mac App: Alfred - Setup & Walkthrough (13:19)](https://youtu.be/NbTvpxhGwvs) - 2023-06-29
+- [The Power of Alfred Workflows (6:38)](https://youtu.be/KhWOaWk1hew) - 2022-11-16
+- [Efficient Tips (#2) - Alfred Workflows | Top picks and how to create them (18:27)](https://youtu.be/U9wJmgd9kAw) - 2020-01-27
+```
 
 ### ⚠️ Requires an API key!
 
