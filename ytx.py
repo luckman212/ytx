@@ -234,15 +234,15 @@ def show_usage():
     sys.exit('YouTube metadata fetcher\nusage: %s [-acmx] <urls-or-filenames>' % os.path.basename(__file__))
 
 # obtain YTV3 API key
-match os.environ.get('YTX_KEY_METHOD'):
+match os.getenv('YTX_KEY_METHOD'):
     case '1PASSWORD':
-        UUID = os.environ.get('YTX_OP_UUID')
+        UUID = os.getenv('YTX_OP_UUID')
         API_KEY = get_secret_from_1password(UUID, "credential")
     case 'STATIC':
-        API_KEY = os.environ.get('YTX_API_KEY')
+        API_KEY = os.getenv('YTX_API_KEY')
     case _:
         #if running as CLI
-        API_KEY = os.environ.get('YTX_API_KEY')
+        API_KEY = os.getenv('YTX_API_KEY')
 
 if __name__ == "__main__":
     #print(sys.executable, file=sys.stderr)
@@ -254,7 +254,12 @@ if __name__ == "__main__":
 
     if in_alfred():
         OUTPUT_MODE = 'alfred'
-        found_urls.extend(extract_youtube_links(get_clipboard()))
+        tabs = os.getenv('BROWSER_TABS')
+        if tabs:
+            tabs_obj = json.loads(tabs)
+            found_urls.extend([t["url"] for t in tabs_obj])
+        else:
+            found_urls.extend(extract_youtube_links(get_clipboard()))
 
     if not args and OUTPUT_MODE == 'plain':
         show_usage()
