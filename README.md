@@ -2,7 +2,7 @@
 
 ## YouTube URL Extractor
 
-Finds any YouTube URLs in the current clipboard text, and queries Google's YouTube V3 API to fetch metadata about each one. Copy the results as Markdown with short youtu.be format links.
+Finds any YouTube URLs in the current clipboard text, and queries Google's YouTube V3 API to fetch metadata about each one. Copy the results as Markdown with short youtu.be format links, which include the duration and upload date.
 
 ### How to use
 
@@ -14,7 +14,7 @@ QuickLook is enabled for the items as a simple “live preview” by pressing th
 
 <img src="example.png" />
 
-#### Example of the normalized copied output
+#### Example of the normalized Markdown output copied to clipboard
 
 ```
 - [REPLACE Spotlight with Alfred 5: The Ultimate Productivity Hack for Mac Users (23:02)](https://youtu.be/fFI_KgKLvuU) - 2025-01-10
