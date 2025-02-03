@@ -12,6 +12,8 @@ Results are displayed in a list, reverse-sorted by video post date. The complete
 
 QuickLook is enabled for the items as a simple “live preview” by pressing the <kbd>SHIFT</kbd> key with a result selected.
 
+<img src="example.png" />
+
 ### ⚠️ Requires an API key!
 
 You must create a Google Cloud project at https://console.cloud.google.com, grant it access to the [YouTube V3 API](https://developers.google.com/youtube/v3/docs/), and then create an API key credential for use within this workflow.
