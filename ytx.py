@@ -8,7 +8,9 @@ import subprocess
 import urllib.request
 import urllib.error
 from urllib.parse import urlparse, parse_qs, urlencode
-from datetime import timedelta, datetime
+from datetime import datetime
+from dataclasses import dataclass, asdict
+from typing import Optional
 
 YOUTUBE_API = "https://www.googleapis.com/youtube/v3/videos"
 TIMEOUT = 5
@@ -33,9 +35,46 @@ YOUTUBE_RE = re.compile(r"""
 )
 """, re.VERBOSE)
 
+@dataclass
+class YT_Video:
+    video_id: str
+    title: Optional[str] = None
+    timestamp: Optional[str] = None
+    channel: Optional[str] = None
+    post_date: Optional[str] = None
+    view_count: Optional[int] = None
+    duration: Optional[str] = None
+    short_url: Optional[str] = None
+    markdown_link: Optional[str] = None
+    extended_link: Optional[str] = None
+
+    @classmethod
+    def from_metadata(cls, metadata: dict, timestamp: Optional[str] = None) -> "YT_Video":
+        title=metadata.get("Title")
+        title_mdsafe = title.translate(str.maketrans("[]", "()"))
+        duration = metadata.get("Duration")
+        post_date=metadata.get("Post Date")
+        short_url = metadata.get("Short URL")
+        if timestamp is not None and short_url:
+            short_url += f"?t={timestamp}"
+        md_link = f'[{title_mdsafe}]({short_url})'
+        md_extended_link = f'[{title_mdsafe} ({duration})]({short_url}) - {post_date}'
+        return cls(
+            video_id=metadata.get("Video ID"),
+            title=title,
+            timestamp=timestamp,
+            channel=metadata.get("Channel"),
+            post_date=post_date,
+            view_count=metadata.get("View Count"),
+            duration=duration,
+            short_url=short_url,
+            markdown_link=md_link,
+            extended_link=md_extended_link,
+        )
+
 def get_clipboard():
     try:
-        result = subprocess.run(['/usr/bin/pbpaste'],
+        result = subprocess.run(['pbpaste'],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
@@ -107,7 +146,6 @@ def get_youtube_metadata(video_id):
     
     vid = video_data["id"]
     title = video_data["snippet"]["title"]
-    title_mdsafe = title.translate(str.maketrans("[]", "()"))
     chan_title = video_data["snippet"]["channelTitle"]
     post_date = video_data["snippet"]["publishedAt"].split("T")[0]
     view_count = int(video_data["statistics"]["viewCount"])
@@ -118,8 +156,6 @@ def get_youtube_metadata(video_id):
     duration_str = format_duration(duration_seconds)
 
     short_url = f'https://youtu.be/{vid}'
-    md_link = f'[{title_mdsafe}]({short_url})'
-    md_extended_link = f'[{title_mdsafe} ({duration_str})]({short_url}) - {post_date}'
 
     return {
         "Video ID": vid,
@@ -127,10 +163,8 @@ def get_youtube_metadata(video_id):
         "Channel": chan_title,
         "Post Date": post_date,
         "View Count": view_count,
-        "Video Length": duration_str,
+        "Duration": duration_str,
         "Short URL": short_url,
-        "Markdown Link": md_link,
-        "Extended Link": md_extended_link,
     }
 
 def parse_iso8601_duration(duration):
@@ -154,25 +188,44 @@ def parse_file(filename):
     except:
         return []
 
+def get_video_info(url):
+    try:
+        parsed_url = urlparse(url)
+    except Exception:
+        return None, None
+    path = parsed_url.path
+    netloc = parsed_url.netloc.lower()
+    qs = parse_qs(parsed_url.query)
+    timestamp = qs.get("t", [None])[0]
+    video_id = None
+    if path.startswith("/embed/"):
+        video_id = path[len("/embed/"):]
+    elif path.startswith("/shorts/"):
+        video_id = path[len("/shorts/"):]
+    elif "youtu.be" in netloc:
+        video_id = path[1:]
+    elif "youtube.com" in netloc:
+        video_id = qs.get("v", [None])[0]
+    return video_id, timestamp
+
 def extract_video_id(items):
-    def get_video_id(url):
-        try:
-            parsed_url = urlparse(url)
-        except Exception:
-            return None
-        path = parsed_url.path
-        netloc = parsed_url.netloc.lower()
-        if path.startswith("/embed/"):
-            return path[len("/embed/"):]
-        elif path.startswith("/shorts/"):
-            return path[len("/shorts/"):]
-        elif "youtu.be" in netloc:
-            return path[1:]
-        elif "youtube.com" in netloc:
-            qs = parse_qs(parsed_url.query)
-            return qs.get("v", [None])[0]
-        return None
-    return list({vid for item in items if (vid := get_video_id(item)) is not None})
+    videos = {}
+    for item in items:
+        video_id, timestamp = get_video_info(item)
+        if video_id is None:
+            continue
+        if timestamp is not None:
+            timestamp = timestamp.rstrip("s")
+        if video_id not in videos:
+            videos[video_id] = YT_Video(video_id=video_id, timestamp=timestamp)
+    return list(videos.values())
+
+def update_video_metadata(video: YT_Video) -> YT_Video:
+    metadata = get_youtube_metadata(video.video_id)
+    if "Error" in metadata:
+        return video
+    updated_video = YT_Video.from_metadata(metadata, timestamp=video.timestamp)
+    return updated_video
 
 def in_alfred() -> bool:
     return os.getenv('alfred_workflow_uid') is not None
@@ -193,7 +246,7 @@ match os.environ.get('YTX_KEY_METHOD'):
 
 if __name__ == "__main__":
     #print(sys.executable, file=sys.stderr)
-    parsed_args = []
+    found_urls = []
     results = []
     OUTPUT_MODE = 'plain'
     DEBUG = False
@@ -201,7 +254,7 @@ if __name__ == "__main__":
 
     if in_alfred():
         OUTPUT_MODE = 'alfred'
-        parsed_args.extend(extract_youtube_links(get_clipboard()))
+        found_urls.extend(extract_youtube_links(get_clipboard()))
 
     if not args and OUTPUT_MODE == 'plain':
         show_usage()
@@ -210,7 +263,7 @@ if __name__ == "__main__":
         if arg in ['-h', '--help']:
             show_usage()
         if arg in ['-c', '--clipboard']:
-            parsed_args.extend(extract_youtube_links(get_clipboard()))
+            found_urls.extend(extract_youtube_links(get_clipboard()))
             continue
         if arg in ['-a', '--alfred']:
             OUTPUT_MODE = 'alfred'
@@ -221,46 +274,47 @@ if __name__ == "__main__":
         if arg in ['-x', '--extended']:
             OUTPUT_MODE = 'extended'
             continue
-        if arg in ['--debug']:
+        if arg in ['-d', '--debug']:
             DEBUG = True
             continue
         if os.path.exists(arg):
-            parsed_args.extend(parse_file(arg))
+            found_urls.extend(parse_file(arg))
         else:
-            parsed_args.append(arg)
+            found_urls.append(arg)
 
-    video_ids = extract_video_id(parsed_args)
+    video_list = extract_video_id(found_urls)
 
     if DEBUG:
-        print("parsed_args:", parsed_args)
-        print("video_ids:", video_ids)
+        print("found_urls:", found_urls)
+        for v in video_list:
+            print(f'id: {v.video_id!r}, t={v.timestamp!r}')
         sys.exit()
 
-    for video_id in video_ids:
-        metadata = get_youtube_metadata(video_id)
-        results.append(metadata)
+    for video in video_list:
+        updated_video = update_video_metadata(video)
+        results.append(updated_video)
 
     # Filter out entries with errors before sorting
-    valid_results = [res for res in results if "Post Date" in res]
-    sorted_results = sorted(valid_results, key=lambda x: datetime.strptime(x["Post Date"], "%Y-%m-%d"), reverse=True)
+    valid_results = [res for res in results if res.post_date is not None]
+    sorted_results = sorted(valid_results, key=lambda x: datetime.strptime(x.post_date, "%Y-%m-%d"), reverse=True)
 
     match OUTPUT_MODE:
         case 'markdown':
-            print("\n".join(f"- {item['Markdown Link']}" for item in sorted_results if 'Markdown Link' in item))
+            print("\n".join(f"- {item.markdown_link}" for item in sorted_results if item.markdown_link))
         case 'extended':
-            print("\n".join(f"- {item['Extended Link']}" for item in sorted_results if 'Extended Link' in item))
+            print("\n".join(f"- {item.extended_link}" for item in sorted_results if item.extended_link))
         case 'alfred':
             if sorted_results:
                 items = [{
-                    "title": f'{item["Title"]} ({item["Video Length"]})',
-                    "arg": item["Short URL"],
-                    "subtitle": f'{item["Post Date"]}',
-                    "mods": { "alt": { "subtitle": item["Title"] }}
-                } for item in sorted_results if "Title" in item and "Short URL" in item ]
+                    "title": f'{item.title} ({item.duration})',
+                    "arg": item.short_url,
+                    "subtitle": f'{item.post_date}',
+                    "mods": { "alt": { "subtitle": item.title }}
+                } for item in sorted_results if item.title and item.short_url ]
                 items.insert(0, {
                     "title": "Copy all items in Markdown link format",
                     "subtitle": f'({len(items)} videos)',
-                    "arg": "\n".join(f"- {item['Extended Link']}" for item in sorted_results if 'Extended Link' in item),
+                    "arg": "\n".join(f"- {item.extended_link}" for item in sorted_results if item.extended_link),
                     "mods": { "alt": {
                         "subtitle": "edit results in TextView",
                         "variables": { "action": "textview" }
@@ -277,4 +331,4 @@ if __name__ == "__main__":
                 }]}
             print(json.dumps(json_output, indent=4))
         case _:
-            print(json.dumps(results, indent=4))
+            print(json.dumps([asdict(item) for item in results], indent=4))
