@@ -107,6 +107,7 @@ def get_youtube_metadata(video_id):
     
     vid = video_data["id"]
     title = video_data["snippet"]["title"]
+    title_mdsafe = title.translate(str.maketrans("[]", "()"))
     chan_title = video_data["snippet"]["channelTitle"]
     post_date = video_data["snippet"]["publishedAt"].split("T")[0]
     view_count = int(video_data["statistics"]["viewCount"])
@@ -117,8 +118,8 @@ def get_youtube_metadata(video_id):
     duration_str = format_duration(duration_seconds)
 
     short_url = f'https://youtu.be/{vid}'
-    md_link = f'[{title}]({short_url})'
-    md_extended_link = f'[{title} ({duration_str})]({short_url}) - {post_date}'
+    md_link = f'[{title_mdsafe}]({short_url})'
+    md_extended_link = f'[{title_mdsafe} ({duration_str})]({short_url}) - {post_date}'
 
     return {
         "Video ID": vid,
