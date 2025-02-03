@@ -18,7 +18,7 @@ You must create a Google Cloud project at https://console.cloud.google.com, gran
 
 Once you have your key, you can input it directly, or store it in 1Password if you prefer (create a new 'API Credential' item, and copy its UUID)
 
-![](1pass.png)
+<img src="1pass.png" width="300" />
 
 ### Terminal CLI
 
