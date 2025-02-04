@@ -30,7 +30,7 @@ QuickLook is enabled for the items as a simple “live preview” by pressing th
 
 ### ⚠️ Requires an API key!
 
-You must create a Google Cloud project at https://console.cloud.google.com, grant it access to the [YouTube V3 API](https://developers.google.com/youtube/v3/docs/), and then create an API key credential for use within this workflow.
+You must create a Google Cloud project at https://console.cloud.google.com, grant it access to the [YouTube V3 API](https://developers.google.com/youtube/v3/docs/), and then create an API key credential for use within this workflow. Scroll further down for a step-by-step.
 
 Once you have your key, you can input it directly, or store it in 1Password if you prefer (create a new 'API Credential' item, and copy its UUID)
 
@@ -64,7 +64,7 @@ Forum post: https://www.alfredforum.com/topic/22763-youtube-url-extractor-ytx/
 3. On the new project dashboard, click Explore & Enable APIs.
 4. In the library, navigate to YouTube Data API v3 under YouTube APIs.
 5. Enable the API.
-6. Create a credential.
+6. Create a credential (choose API key as type).
 7. A screen will appear with the API key.
 
 [1]: https://console.cloud.google.com
