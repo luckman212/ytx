@@ -56,3 +56,15 @@ ytx.py [-cmx] <url-or-filename> [url2...]
 ### Alfred Forum
 
 Forum post: https://www.alfredforum.com/topic/22763-youtube-url-extractor-ytx/
+
+### Steps to create YouTube API key
+
+1. Log in to the [Google Developer Console][1].
+2. Create a new project.
+3. On the new project dashboard, click Explore & Enable APIs.
+4. In the library, navigate to YouTube Data API v3 under YouTube APIs.
+5. Enable the API.
+6. Create a credential.
+7. A screen will appear with the API key.
+
+[1]: https://console.cloud.google.com
