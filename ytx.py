@@ -72,6 +72,24 @@ class YT_Video:
             extended_link=md_extended_link,
         )
 
+def get_yt_tabs():
+    try:
+        result = subprocess.run([
+            os.path.expanduser('~/Library/Application Support/Alfred/Automation/Tasks/com.alfredapp.automation.core/safari/.common/tabs-matching'),
+            'frontmost_browser',
+            '1', '1', 'json',
+            '^https://(www\\.)?youtube\\.com/watch\\?v=', '1'
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True
+        )
+        return result.stdout
+    except subprocess.CalledProcessError:
+        print('Error executing Automation Task', file=sys.stderr)
+        return ""
+
 def get_clipboard():
     try:
         result = subprocess.run(['pbpaste'],
@@ -254,12 +272,13 @@ if __name__ == "__main__":
 
     if in_alfred():
         OUTPUT_MODE = 'alfred'
-        tabs = os.getenv('BROWSER_TABS')
-        if tabs:
-            tabs_obj = json.loads(tabs)
-            found_urls.extend([t["url"] for t in tabs_obj])
-        else:
-            found_urls.extend(extract_youtube_links(get_clipboard()))
+        if os.getenv('INCLUDE_TABS') == '1':
+            tabs_raw = get_yt_tabs()
+            if tabs_raw:
+                tabs_obj = json.loads(tabs_raw)
+                tabs_arg = json.loads(tabs_obj["alfredworkflow"]["arg"])
+                found_urls.extend([t["url"] for t in tabs_arg])
+        found_urls.extend(extract_youtube_links(get_clipboard()))
 
     if not args and OUTPUT_MODE == 'plain':
         show_usage()
@@ -331,7 +350,7 @@ if __name__ == "__main__":
                 json_output = { "items": items }
             else:
                 json_output = { "items": [{
-                    "title": "No results from the current clipboard contents!",
+                    "title": "No matches found in clipboard or current browser tabs",
                     "valid": False
                 }]}
             print(json.dumps(json_output, indent=4))
