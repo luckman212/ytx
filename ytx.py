@@ -341,7 +341,7 @@ if __name__ == "__main__":
                         "alt": {
                             "arg": item.extended_link,
                             "subtitle": "copy Markdown link",
-                            "icon": { "path": "copy-as-markdown.png" },
+                            "icon": { "path": "copy-one-markdown.png" },
                             "variables": { "action": "copy1" }
                          }
                     }
@@ -354,7 +354,7 @@ if __name__ == "__main__":
                         "subtitle": "edit results in TextView",
                         "variables": { "action": "textview" }
                     }},
-                    "icon": { "path": "copy-as-markdown.png" },
+                    "icon": { "path": "copy-all-markdown.png" },
                     "variables": { "action": "copy" },
                     "quicklookurl": None
                 })
