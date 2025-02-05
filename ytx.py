@@ -74,12 +74,15 @@ class YT_Video:
 
 def get_yt_tabs():
     try:
+        atcmd = os.path.expanduser('~/Library/Application Support/Alfred/Automation/Tasks/com.alfredapp.automation.core/safari/.common/tabs-matching')
+        if os.path.exists(atcmd) is False:
+            return ""
         result = subprocess.run([
-            os.path.expanduser('~/Library/Application Support/Alfred/Automation/Tasks/com.alfredapp.automation.core/safari/.common/tabs-matching'),
+            atcmd,
             'frontmost_browser',
             '1', '1', 'json',
-            '^https://(www\\.)?youtube\\.com/watch\\?v=', '1'
-            ],
+            '^https://(www\\.)?youtube\\.com/watch\\?v=',
+            '1'],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
@@ -87,7 +90,7 @@ def get_yt_tabs():
         )
         return result.stdout
     except subprocess.CalledProcessError:
-        print('Error executing Automation Task', file=sys.stderr)
+        print(f'Error during execution of Automation Task', file=sys.stderr)
         return ""
 
 def get_clipboard():
@@ -333,7 +336,15 @@ if __name__ == "__main__":
                     "title": f'{item.title} ({item.duration})',
                     "arg": item.short_url,
                     "subtitle": f'{item.post_date}',
-                    "mods": { "alt": { "subtitle": item.title }}
+                    "mods": {
+                        "ctrl": { "subtitle": item.title },
+                        "alt": {
+                            "arg": item.extended_link,
+                            "subtitle": "copy Markdown link",
+                            "icon": { "path": "copy-as-markdown.png" },
+                            "variables": { "action": "copy1" }
+                         }
+                    }
                 } for item in sorted_results if item.title and item.short_url ]
                 items.insert(0, {
                     "title": "Copy all items in Markdown link format",
